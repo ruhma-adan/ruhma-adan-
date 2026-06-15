@@ -1,47 +1,43 @@
-
 import streamlit as st
-from transformers import pipeline
+from langdetect import detect, DetectorFactory
 
-st.set_page_config(
-    page_title="Sentiment Analysis App",
-    page_icon="😊",
-    layout="centered"
-)
+DetectorFactory.seed = 0
 
-st.title("😊 Sentiment Analysis App")
-st.write("Enter text and analyze its sentiment using a free Hugging Face model.")
+st.set_page_config(page_title="Language Detection App")
 
-@st.cache_resource
-def load_model():
-    return pipeline(
-        "sentiment-analysis",
-        model="distilbert-base-uncased-finetuned-sst-2-english",
-        framework="tf"
-    )
+st.title("🌍 Language Detection App")
+st.write("Enter text and detect its language.")
 
-classifier = load_model()
+text = st.text_area("Enter Text")
 
-user_text = st.text_area(
-    "Enter your text:",
-    height=150,
-    placeholder="Type something here..."
-)
+if st.button("Detect Language"):
+    if text.strip():
+        try:
+            language = detect(text)
 
-if st.button("Analyze Sentiment"):
-    if user_text.strip():
-        result = classifier(user_text)[0]
+            language_names = {
+                "en": "English",
+                "ur": "Urdu",
+                "ar": "Arabic",
+                "fr": "French",
+                "de": "German",
+                "es": "Spanish",
+                "it": "Italian",
+                "pt": "Portuguese",
+                "ru": "Russian",
+                "hi": "Hindi",
+                "zh-cn": "Chinese",
+                "ja": "Japanese",
+                "ko": "Korean",
+                "tr": "Turkish"
+            }
 
-        label = result["label"]
-        score = round(result["score"] * 100, 2)
+            detected = language_names.get(language, language)
 
-        st.subheader("Result")
+            st.success(f"Detected Language: {detected}")
+            st.write(f"Language Code: {language}")
 
-        if label == "POSITIVE":
-            st.success(f"Positive 😊 ({score}%)")
-        else:
-            st.error(f"Negative 😞 ({score}%)")
-
-        st.write("**Confidence:**", f"{score}%")
-
+        except Exception as e:
+            st.error("Could not detect the language.")
     else:
         st.warning("Please enter some text.")
